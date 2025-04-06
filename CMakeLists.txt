@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.24)
 project(edgebreaker LANGUAGES CXX)
 
 # Set C++ standard to C++20
@@ -12,11 +12,11 @@ set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
 # Collect all .cpp files in the src directory
 file(GLOB_RECURSE SOURCES "${SRC_DIR}/*.cpp")
 
-# Add the executable
-add_executable(${PROJECT_NAME} "${SRC_DIR}/main.cpp")
+# Add the executable (use SOURCES to include all .cpp files)
+add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Include the headers
 target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIR})
 
-#Copy data files to build directory
+# Copy data files to build directory (including subdirectories)
 file(COPY "${CMAKE_SOURCE_DIR}/data" DESTINATION "${CMAKE_BINARY_DIR}")
