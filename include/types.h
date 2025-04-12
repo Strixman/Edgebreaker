@@ -1,9 +1,8 @@
 #pragma once
+#include <array>
 
-struct Vertex {
-    float x, y, z;
-};
+using Vertex = std::array<float,3>;
 
-struct Indices {
-    int a, b, c;
-};
+using Indices = std::array<int, 3>;
+
+using Edge = std::array<int, 2>;

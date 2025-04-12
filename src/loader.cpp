@@ -29,8 +29,8 @@ std::pair<std::vector<Vertex>, std::vector<Indices>> Loader::load_OBJ(
         std::istringstream ss(line);
         ss >> tag;
         if (tag == "v") {
-            Vertex v;
-            ss >> v.x >> v.y >> v.z;
+            Vertex v{};
+            ss >> v[0] >> v[1] >> v[2];
             vert.push_back(v);
         } else if (tag == "f") {
             std::vector<int> indices;
@@ -66,7 +66,7 @@ std::pair<std::vector<Vertex>, std::vector<Indices>> Loader::load_OFF(
 
     vert.resize(numVerts);
     for (auto& v : vert)
-        in >> v.x >> v.y >> v.z;
+        in >> v[0] >> v[1] >> v[2];
 
     for (int i = 0; i < numFaces; ++i) {
         int n; in >> n;

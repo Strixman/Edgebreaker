@@ -62,7 +62,10 @@ def ov2obj(infile, outfile):
                     triangles.append([face[0], face[2], face[3]])
 
     components = split_faces_by_components(vertices, triangles)
+
+    
     for comp, triangles in enumerate(components.values()):
+        print(len(triangles))
         # Detect boundary edges with correct orientation
         edge_pairs = set()
         for tri in triangles:
@@ -122,6 +125,7 @@ def ov2obj(infile, outfile):
             dummy_indices.append(vertex_i)
             vertex_i += 1
 
+        print(len(triangles))
         # Generate output data
         num_triangles = len(triangles)
         num_vertices = len(vertices)
