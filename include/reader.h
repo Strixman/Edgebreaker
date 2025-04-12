@@ -6,6 +6,7 @@
 #include <format>
 #include <sstream>
 #include <string>
+#include <queue>
 
 #include "types.h"
 
@@ -30,6 +31,9 @@ public:
         const std::string& infile
     );
     static std::pair<std::vector<Vertex>, std::vector<std::tuple<std::vector<int>, std::vector<int>, std::vector<int>>>> read_OVX(
+        const std::string& infile
+    );
+    static std::vector<std::tuple<std::queue<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<int>>> read_Compressed(
         const std::string& infile
     );
 };

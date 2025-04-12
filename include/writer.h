@@ -28,4 +28,8 @@ public:
         const std::vector<Vertex>& vert,
         const std::vector<std::tuple<std::vector<int>, std::vector<int>, std::vector<int>>>& ovx
     );
+    static void write_Compressed(
+        const std::string& outfile,
+        const std::vector<std::tuple<std::vector<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<int>>>& compressed
+    );
 };

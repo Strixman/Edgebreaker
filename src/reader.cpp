@@ -78,6 +78,7 @@ std::pair<std::vector<Vertex>, std::vector<std::tuple<std::vector<int>, std::vec
     in >> comp_size;
     for(int i = 0; i < comp_size; ++i){
         auto& [V, O, dummy] = ovx.emplace_back();
+
         int vo_size, v, o;
         in >> vo_size;
         for(int j = 0; j < 3 * vo_size; ++j){
@@ -100,4 +101,63 @@ std::pair<std::vector<Vertex>, std::vector<std::tuple<std::vector<int>, std::vec
     }
 
     return std::make_pair(vert, ovx);
+}
+
+std::vector<std::tuple<std::queue<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<int>>> Reader::read_Compressed(const std::string &infile)
+{
+    std::ifstream in(infile);
+    if(!in) throw ReaderException(std::format("Cannot open file {}!", infile));
+
+    std::vector<std::tuple<std::queue<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<int>>> decompressed;
+
+    int comp_size;
+    in >> comp_size;
+    for(int i = 0;  i < comp_size; ++i){
+        auto& [vertices, clers, handles, dummy] = decompressed.emplace_back();
+
+        int vertices_size;
+        in >> vertices_size;
+        for(int j = 0; j < vertices_size; ++j){
+            Vertex& v = vertices.emplace();
+            in >> v[0] >> v[1] >> v[2];
+        }
+        int clers_size;
+        in >> clers_size >> clers.first;
+        for(int j = 0; j < clers_size; ++j){
+            char ch;
+            in >> ch;
+            switch (ch)
+            {
+            case 'C':
+                clers.second.push_back(CLERS::C);
+                break;
+            case 'L':
+                clers.second.push_back(CLERS::L);
+                break;
+            case 'E':
+                clers.second.push_back(CLERS::E);
+                break;
+            case 'R':
+                clers.second.push_back(CLERS::R);
+                break;
+            case 'S':
+                clers.second.push_back(CLERS::S);
+                break;
+            }
+        }
+        int handles_size;
+        in >> handles_size;
+        for(int j = 0; j < handles_size; ++j){
+            Handle h = handles.emplace_back();
+            in >> h[0] >> h[1];
+        }
+        int dummy_size, d;
+        in >> dummy_size;
+        for(int j = 0; j < dummy_size; ++j){
+            in >> d;
+            dummy.push_back(d);
+        }
+    }
+
+    return decompressed;
 }
