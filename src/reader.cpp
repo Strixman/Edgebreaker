@@ -1,25 +1,10 @@
-#include "loader.h"
+#include "reader.h"
 
-std::pair<std::vector<Vertex>, std::vector<Indices>> Loader::load(
-    const std::string& infile,
-    const EXT ext
-) {
-    switch (ext)
-    {
-    case EXT::OBJ: 
-        return load_OBJ(infile);
-    case EXT::OFF:
-        return load_OFF(infile);
-    default:
-        throw LoaderException("Invalid file type!");
-    }
-}
-
-std::pair<std::vector<Vertex>, std::vector<Indices>> Loader::load_OBJ(
+std::pair<std::vector<Vertex>, std::vector<Indices>> Reader::read_OBJ(
     const std::string& infile
 ) {
     std::ifstream in(infile);
-    if(!in) throw LoaderException(std::format("Cannot open file {}!", infile));
+    if(!in) throw ReaderException(std::format("Cannot open file {}!", infile));
 
     std::vector<Vertex> vert;
     std::vector<Indices> tri;
@@ -48,18 +33,18 @@ std::pair<std::vector<Vertex>, std::vector<Indices>> Loader::load_OBJ(
     return std::make_pair(vert, tri);
 }
 
-std::pair<std::vector<Vertex>, std::vector<Indices>> Loader::load_OFF(
+std::pair<std::vector<Vertex>, std::vector<Indices>> Reader::read_OFF(
     const std::string& infile
 ) {
     std::ifstream in(infile);
-    if(!in) throw LoaderException(std::format("Cannot open file {}!", infile));
+    if(!in) throw ReaderException(std::format("Cannot open file {}!", infile));
 
     std::vector<Vertex> vert;
     std::vector<Indices> tri;
 
     std::string header;
     in >> header;
-    if (header != "OFF") throw LoaderException("Invalid OFF file");
+    if (header != "OFF") throw ReaderException("Invalid OFF file");
 
     int numVerts, numFaces, _;
     in >> numVerts >> numFaces >> _;
@@ -78,4 +63,41 @@ std::pair<std::vector<Vertex>, std::vector<Indices>> Loader::load_OFF(
     }
 
     return std::make_pair(vert, tri);
+}
+
+std::pair<std::vector<Vertex>, std::vector<std::tuple<std::vector<int>, std::vector<int>, std::vector<int>>>> Reader::read_OVX(
+    const std::string& infile
+) {
+    std::ifstream in(infile);
+    if(!in) throw ReaderException(std::format("Cannot open file {}!", infile));
+
+    std::vector<Vertex> vert;
+    std::vector<std::tuple<std::vector<int>, std::vector<int>, std::vector<int>>> ovx;
+
+    int comp_size;
+    in >> comp_size;
+    for(int i = 0; i < comp_size; ++i){
+        auto& [V, O, dummy] = ovx.emplace_back();
+        int vo_size, v, o;
+        in >> vo_size;
+        for(int j = 0; j < 3 * vo_size; ++j){
+            in >> v >> o;
+            V.push_back(v);
+            O.push_back(o);
+        }
+        int dummy_size;
+        in >> dummy_size;
+        dummy.resize(dummy_size);
+        for(auto& d : dummy){
+            in >> d;
+        }
+    }
+    int vert_size;
+    in >> vert_size;
+    vert.resize(vert_size);
+    for(auto& v : vert){
+        in >> v[0] >> v[1] >> v[2];
+    }
+
+    return std::make_pair(vert, ovx);
 }
