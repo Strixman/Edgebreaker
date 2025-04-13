@@ -17,6 +17,3 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Include the headers
 target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIR})
-
-# Copy data files to build directory (including subdirectories)
-file(COPY "${CMAKE_SOURCE_DIR}/data" DESTINATION "${CMAKE_BINARY_DIR}")
