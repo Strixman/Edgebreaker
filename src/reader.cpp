@@ -103,8 +103,9 @@ std::pair<std::vector<Vertex>, std::vector<std::tuple<std::vector<int>, std::vec
     return std::make_pair(vert, ovx);
 }
 
-std::vector<std::tuple<std::queue<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<Dummy>>> Reader::read_Compressed(const std::string &infile)
-{
+std::vector<std::tuple<std::queue<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<Dummy>>> Reader::read_Compressed(
+    const std::string &infile
+) {
     std::ifstream in(infile);
     if(!in) throw ReaderException(std::format("Cannot open file {}!", infile));
 
@@ -159,5 +160,78 @@ std::vector<std::tuple<std::queue<Vertex>, std::pair<int, std::vector<CLERS>>, s
         }
     }
 
+    return decompressed;
+}
+
+
+
+std::vector<std::tuple<std::queue<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<Dummy>>> Reader::read_Compressed_BIN(
+    const std::string &infile
+) {
+    std::ifstream in(infile, std::ios::binary);
+    if (!in) throw ReaderException(std::format("Cannot open file {}!", infile));
+
+    std::vector<std::tuple<std::queue<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<Dummy>>> decompressed;
+
+    size_t comp_size;
+    in.read(reinterpret_cast<char*>(&comp_size), sizeof(comp_size));
+
+    for (size_t i = 0; i < comp_size; ++i) {
+        auto& [vertices, clers, handles, dummy] = decompressed.emplace_back();
+
+        // Read vertices count and each Vertex (assuming 3 numbers per vertex)
+        size_t vertices_size;
+        in.read(reinterpret_cast<char*>(&vertices_size), sizeof(vertices_size));
+        for (size_t j = 0; j < vertices_size; ++j) {
+            Vertex& v = vertices.emplace();
+            in.read(reinterpret_cast<char*>(&v[0]), sizeof(v[0]));
+            in.read(reinterpret_cast<char*>(&v[1]), sizeof(v[1]));
+            in.read(reinterpret_cast<char*>(&v[2]), sizeof(v[2]));
+        }
+
+        // Read CLERS count and the integer part (clers.first)
+        size_t clers_enum_size;
+        in.read(reinterpret_cast<char*>(&clers_enum_size), sizeof(clers_enum_size));
+        in.read(reinterpret_cast<char*>(&clers.first), sizeof(clers.first));
+        for (size_t j = 0; j < clers_enum_size; ++j) {
+            char ch;
+            in.read(reinterpret_cast<char*>(&ch), sizeof(ch));
+            switch (ch) {
+                case 'C':
+                    clers.second.push_back(CLERS::C);
+                    break;
+                case 'L':
+                    clers.second.push_back(CLERS::L);
+                    break;
+                case 'E':
+                    clers.second.push_back(CLERS::E);
+                    break;
+                case 'R':
+                    clers.second.push_back(CLERS::R);
+                    break;
+                case 'S':
+                    clers.second.push_back(CLERS::S);
+                    break;
+            }
+        }
+
+        // Read handles count and each handle (each assumed to have 2 elements)
+        size_t handles_size;
+        in.read(reinterpret_cast<char*>(&handles_size), sizeof(handles_size));
+        for (size_t j = 0; j < handles_size; ++j) {
+            Handle& h = handles.emplace_back();
+            in.read(reinterpret_cast<char*>(&h[0]), sizeof(h[0]));
+            in.read(reinterpret_cast<char*>(&h[1]), sizeof(h[1]));
+        }
+
+        // Read dummy count and each dummy (only using dummy.first; the second element is kept empty)
+        size_t dummy_size;
+        in.read(reinterpret_cast<char*>(&dummy_size), sizeof(dummy_size));
+        for (size_t j = 0; j < dummy_size; ++j) {
+            int d;
+            in.read(reinterpret_cast<char*>(&d), sizeof(d));
+            dummy.push_back({d, {}}); // Adjust according to Dummy's structure.
+        }
+    }
     return decompressed;
 }

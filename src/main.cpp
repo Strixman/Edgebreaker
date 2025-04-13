@@ -22,13 +22,13 @@ void compress(const std::string& infile, const std::string& outfile){
         ++progress;
     }
 
-    Writer::write_Compressed(outfile, compressed);
+    Writer::write_Compressed_BIN(outfile, compressed);
 
     std::cout << std::format("Compressed file {} into {}\n", infile, outfile);
 }
 
 void decompress(const std::string& infile, const std::string& outfile){
-    auto uncompressed = Reader::read_Compressed(infile);
+    auto uncompressed = Reader::read_Compressed_BIN(infile);
 
     std::vector<std::tuple<std::vector<Vertex>, std::vector<int>, std::vector<int>, std::vector<int>>> ovx;
     int progress = 1;
@@ -51,9 +51,9 @@ void decompress(const std::string& infile, const std::string& outfile){
 }
 
 int main(int argc, char* argv[]) {
-    compress(argv[1], "out.txt");
+    compress(argv[1], "out.bin");
 
-    decompress("out.txt", "out.obj");
+    decompress("out.bin", "out.obj");
 
     return 0;
 }

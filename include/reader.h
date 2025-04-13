@@ -36,4 +36,7 @@ public:
     static std::vector<std::tuple<std::queue<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<Dummy>>> read_Compressed(
         const std::string& infile
     );
+    static std::vector<std::tuple<std::queue<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<Dummy>>> read_Compressed_BIN(
+        const std::string& infile
+    );
 };

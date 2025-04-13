@@ -32,6 +32,10 @@ public:
         const std::string& outfile,
         const std::vector<std::tuple<std::vector<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<Dummy>>>& compressed
     );
+    static void write_Compressed_BIN(
+        const std::string& outfile,
+        const std::vector<std::tuple<std::vector<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<Dummy>>>& compressed
+    );
     static void write_OBJ(
         const std::string& outfile,
         const std::vector<Vertex>& vert,

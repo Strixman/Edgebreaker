@@ -72,6 +72,64 @@ void Writer::write_Compressed(
     }
 }
 
+void Writer::write_Compressed_BIN(
+    const std::string &outfile, 
+    const std::vector<std::tuple<std::vector<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<Dummy>>> &compressed
+) {
+    std::ofstream out(outfile, std::ios::binary);
+    if(!out) throw WriterException(std::format("Cannot write to file {}!", outfile));
+
+    // Write the number of compressed entries
+    size_t count = compressed.size();
+    out.write(reinterpret_cast<const char*>(&count), sizeof(count));
+
+    for(auto& [vertices, clers, handles, dummy] : compressed) {
+        // Write vertices
+        size_t vertex_count = vertices.size();
+        out.write(reinterpret_cast<const char*>(&vertex_count), sizeof(vertex_count));
+        for(auto& v : vertices) {
+            float x = v[0], y = v[1], z = v[2];
+            out.write(reinterpret_cast<const char*>(&x), sizeof(x));
+            out.write(reinterpret_cast<const char*>(&y), sizeof(y));
+            out.write(reinterpret_cast<const char*>(&z), sizeof(z));
+        }
+
+        // Write CLERS data
+        size_t clers_count = clers.second.size();
+        out.write(reinterpret_cast<const char*>(&clers_count), sizeof(clers_count));
+        out.write(reinterpret_cast<const char*>(&clers.first), sizeof(clers.first));
+        for(auto c : clers.second) {
+            char ch;
+            switch(c) {
+                case CLERS::C: ch = 'C'; break;
+                case CLERS::L: ch = 'L'; break;
+                case CLERS::E: ch = 'E'; break;
+                case CLERS::R: ch = 'R'; break;
+                case CLERS::S: ch = 'S'; break;
+                default: throw WriterException("Invalid CLERS value");
+            }
+            out.write(&ch, sizeof(ch));
+        }
+
+        // Write handles
+        size_t handle_count = handles.size();
+        out.write(reinterpret_cast<const char*>(&handle_count), sizeof(handle_count));
+        for(auto& h : handles) {
+            int h0 = h[0], h1 = h[1];
+            out.write(reinterpret_cast<const char*>(&h0), sizeof(h0));
+            out.write(reinterpret_cast<const char*>(&h1), sizeof(h1));
+        }
+
+        // Write dummy data
+        size_t dummy_count = dummy.size();
+        out.write(reinterpret_cast<const char*>(&dummy_count), sizeof(dummy_count));
+        for(auto& d : dummy) {
+            int val = d.first;
+            out.write(reinterpret_cast<const char*>(&val), sizeof(val));
+        }
+    }
+}
+
 void Writer::write_OBJ(
     const std::string &outfile, 
     const std::vector<Vertex> &vert, 
