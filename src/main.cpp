@@ -8,10 +8,10 @@ void compress(const std::string& infile, const std::string& outfile){
     auto [vert, tri] = Reader::read_OBJ(infile);
     auto ovx = Converter::toOVX(vert, tri);
 
-    //auto [vert, ovx] = Reader::read_OVX(infile);
-
     std::vector<std::tuple<std::vector<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<Dummy>>> compressed;
+    int progress = 1;
     for(auto& [V, O, dummy] : ovx){
+        std::cout << std::format("Compressing progress: {:.2f}%\n", progress * 100 / (float)ovx.size());
         auto& [vertices, clers, handles, _dummy] = compressed.emplace_back();
         for(auto d : dummy){
             _dummy.push_back(d);
@@ -19,6 +19,7 @@ void compress(const std::string& infile, const std::string& outfile){
 
         Compressor c(vert, V, O);
         c.compress(0, vertices, clers, handles, _dummy);
+        ++progress;
     }
 
     Writer::write_Compressed(outfile, compressed);
@@ -30,7 +31,9 @@ void decompress(const std::string& infile, const std::string& outfile){
     auto uncompressed = Reader::read_Compressed(infile);
 
     std::vector<std::tuple<std::vector<Vertex>, std::vector<int>, std::vector<int>, std::vector<int>>> ovx;
+    int progress = 1;
     for(auto& [vertices, clers, handles, dummy] : uncompressed){
+        std::cout << std::format("Decompressing progress: {:.2f}%\n", progress * 100 / (float)uncompressed.size());
         auto& [vert, V, O, _dummy] = ovx.emplace_back();
         for(auto d : dummy){
             _dummy.push_back(d.first);
@@ -38,6 +41,7 @@ void decompress(const std::string& infile, const std::string& outfile){
 
         Decompressor d(vertices, clers, handles);
         d.decompress(vert, V, O);
+        ++progress;
     }
 
     auto [vert, tri] = Converter::fromOVX(ovx);
