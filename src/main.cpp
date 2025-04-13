@@ -47,7 +47,7 @@ void decompress(const std::string& infile, const std::string& outfile){
 }
 
 int main(int argc, char* argv[]) {
-    //compress(argv[1], "out.txt");
+    compress(argv[1], "out.txt");
 
     decompress("out.txt", "out.obj");
 

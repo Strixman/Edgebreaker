@@ -59,7 +59,6 @@ void Decompressor::_decompressConectivity(
     std::vector<int>& _V,
     std::vector<int>& _O
 ) {
-    std::cout << "dc(" << c << "),";
     for(;;){
         ++_T;
         _O[c] = 3 * _T;
@@ -111,7 +110,6 @@ void Decompressor::_decompressVertices(
     std::vector<int>& _V,
     std::vector<int>& _O
 ) {
-    std::cout << "dv(" << c << "),";
     for(;;){
         _U[T(c)] = 1;
         if(_M[_V[c]] == 0){
@@ -146,7 +144,6 @@ bool Decompressor::_checkHandle(
     std::vector<int>& _V,
     std::vector<int>& _O
 ) {
-    std::cout << "ch(" << c << "),";
     if(_A >= _H.size() || c != _H[_A][1]){
         return false;
     }
@@ -180,7 +177,6 @@ void Decompressor::_zip(
     std::vector<int>& _V,
     std::vector<int>& _O
 ) {
-    std::cout << "z(" << c << "),";
     int b = N(c);
     while(_O[b] >= 0 && _O[b] != c){
         b = N(_O[b]);
@@ -214,9 +210,6 @@ Vertex Decompressor::_decodeDelta(
     std::vector<int>& _V,
     std::vector<int>& _O
 ) {
-    std::cout << "d(" << c << "),";
-    return {0, 0, 0};
-
     Vertex delta = _vertices.front();
     _vertices.pop();
 
