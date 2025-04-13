@@ -4,6 +4,11 @@
 #include "compressor.h"
 #include "decompressor.h"
 
+std::streamsize getFileSize(const std::string& filename) {
+    std::ifstream file(filename, std::ios::binary | std::ios::ate);
+    return file.tellg();
+}
+
 void compress(const std::string& infile, const std::string& outfile){
     auto [vert, tri] = Reader::read_OBJ(infile);
     auto ovx = Converter::toOVX(vert, tri);
@@ -24,6 +29,10 @@ void compress(const std::string& infile, const std::string& outfile){
 
     Writer::write_Compressed_BIN(outfile, compressed);
 
+    auto infile_size = getFileSize(infile);
+    auto outfile_size = getFileSize(outfile);
+    std::cout << std::format("Compression ratio: {:.2f}\n", outfile_size / (float)infile_size);
+    std::cout << std::format("Relative savings: {:.2f}%\n", ((infile_size - outfile_size) / (float)infile_size) * 100);
     std::cout << std::format("Compressed file {} into {}\n", infile, outfile);
 }
 
