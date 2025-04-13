@@ -73,7 +73,7 @@ void fill_holes(
     std::vector<Vertex>& vert, 
     std::vector<Indices>& tri, 
     const std::vector<Edge>& edges,
-    std::vector<int>& dummy
+    std::vector<Dummy>& dummy
 ) {
     std::unordered_map<int, std::vector<int>> adj;
     for (const auto& e : edges) {
@@ -135,7 +135,7 @@ void fill_holes(
         centroid[2] *= inv_size;
 
         vert.push_back(centroid);
-        dummy.push_back(vertex_i);
+        dummy.push_back({vertex_i, centroid});
 
         for (size_t i = 0; i < loop.size(); ++i) {
             tri.push_back({vertex_i, loop[i], loop[(i + 1) % loop.size()]});
@@ -144,14 +144,13 @@ void fill_holes(
         vertex_i++;
     }
 };
-
 #pragma endregion
 
-std::vector<std::tuple<std::vector<int>, std::vector<int>, std::vector<int>>> Converter::toOVX(
+std::vector<std::tuple<std::vector<int>, std::vector<int>, std::vector<Dummy>>> Converter::toOVX(
     std::vector<Vertex>& vert, 
     std::vector<Indices>& tri
 ) {
-    std::vector<std::tuple<std::vector<int>, std::vector<int>, std::vector<int>>> result;
+    std::vector<std::tuple<std::vector<int>, std::vector<int>, std::vector<Dummy>>> result;
 
     auto components = splitIntoComponents(vert.size(), tri);
     for(auto& c_tri : components){
@@ -190,9 +189,39 @@ std::vector<std::tuple<std::vector<int>, std::vector<int>, std::vector<int>>> Co
 }
 
 std::pair<std::vector<Vertex>, std::vector<Indices>> Converter::fromOVX(
-    const std::vector<int>& O, 
-    const std::vector<int>& V, 
-    const std::vector<int>& dummy
+    const std::vector<std::tuple<std::vector<Vertex>, std::vector<int>, std::vector<int>, std::vector<int>>> &ovx
 ) {
-    return std::pair<std::vector<Vertex>, std::vector<Indices>>();
-}
+    std::vector<Vertex> vert;
+    std::vector<Indices> tri;
+
+    int idx = 0;
+    for (const auto& [_vert, V, _, dummy] : ovx) {
+        std::unordered_set<int> dummy_set(dummy.begin(), dummy.end());
+        std::vector<int> index_map(_vert.size(), -1);
+        int current_batch_count = 0;
+
+        for (int i = 0; i < _vert.size(); ++i) {
+            if (dummy_set.find(i) == dummy_set.end()) {
+                index_map[i] = current_batch_count;
+                current_batch_count++;
+                vert.push_back(_vert[i]);
+            }
+        }
+
+        for (int i = 0; i < V.size(); i += 3) {
+            int v0 = V[i];
+            int v1 = V[i + 1];
+            int v2 = V[i + 2];
+
+            if (index_map[v0] == -1 || index_map[v1] == -1 || index_map[v2] == -1) {
+                continue;
+            }
+
+            tri.push_back({idx + index_map[v0], idx + index_map[v1], idx + index_map[v2]});
+        }
+
+        idx += current_batch_count;
+    }
+
+    return {vert, tri};
+};

@@ -8,7 +8,9 @@ void compress(const std::string& infile, const std::string& outfile){
     auto [vert, tri] = Reader::read_OBJ(infile);
     auto ovx = Converter::toOVX(vert, tri);
 
-    std::vector<std::tuple<std::vector<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<int>>> compressed;
+    //auto [vert, ovx] = Reader::read_OVX(infile);
+
+    std::vector<std::tuple<std::vector<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<Dummy>>> compressed;
     for(auto& [V, O, dummy] : ovx){
         auto& [vertices, clers, handles, _dummy] = compressed.emplace_back();
         for(auto d : dummy){
@@ -16,23 +18,38 @@ void compress(const std::string& infile, const std::string& outfile){
         }
 
         Compressor c(vert, V, O);
-        c.compress(0, vertices, clers, handles);
+        c.compress(0, vertices, clers, handles, _dummy);
     }
 
     Writer::write_Compressed(outfile, compressed);
+
+    std::cout << std::format("Compressed file {} into {}\n", infile, outfile);
+}
+
+void decompress(const std::string& infile, const std::string& outfile){
+    auto uncompressed = Reader::read_Compressed(infile);
+
+    std::vector<std::tuple<std::vector<Vertex>, std::vector<int>, std::vector<int>, std::vector<int>>> ovx;
+    for(auto& [vertices, clers, handles, dummy] : uncompressed){
+        auto& [vert, V, O, _dummy] = ovx.emplace_back();
+        for(auto d : dummy){
+            _dummy.push_back(d.first);
+        }
+
+        Decompressor d(vertices, clers, handles);
+        d.decompress(vert, V, O);
+    }
+
+    auto [vert, tri] = Converter::fromOVX(ovx);
+    Writer::write_OBJ(outfile, vert, tri);
+
+    std::cout << std::format("Decompressed file {} into {}\n", infile, outfile);
 }
 
 int main(int argc, char* argv[]) {
-    compress(argv[1], "out.txt");
+    //compress(argv[1], "out.txt");
 
-    std::vector<std::tuple<std::vector<int>, std::vector<int>, std::vector<int>>> ovx;
-    auto uncompressed = Reader::read_Compressed("out.txt");
-    for(auto& [vertices, clers, handles, dummy] : uncompressed){
-        Decompressor d(vertices, clers, handles);
-        auto [vert, V, O] = d.decompress();
-        ovx.push_back(std::make_tuple(V, O, dummy));
-        Writer::write_OVX("out.ovx", vert, {std::make_tuple(V, O, dummy)});
-    }
+    decompress("out.txt", "out.obj");
 
     return 0;
 }

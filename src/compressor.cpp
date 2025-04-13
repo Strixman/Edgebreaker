@@ -10,15 +10,17 @@ void Compressor::compress(
     int c,
     std::vector<Vertex>& vertices,
     std::pair<int, std::vector<CLERS>>& clers,
-    std::vector<Handle>& handles
+    std::vector<Handle>& handles,
+    std::vector<Dummy>& dummy
 ) {
     _reset();
+    c = P(c);
 
-    _encodeDelta(N(c), vertices);
+    _encodeDelta(N(c), vertices, dummy);
     _M[_V[N(c)]] = 1;
-    _encodeDelta(c, vertices);
+    _encodeDelta(c, vertices, dummy);
     _M[_V[c]] = 1;
-    _encodeDelta(P(c), vertices);
+    _encodeDelta(P(c), vertices, dummy);
     _M[_V[P(c)]] = 1;
     _U[T(c)] = 1;
 
@@ -28,7 +30,7 @@ void Compressor::compress(
         _U[T(a)] = 1;
         ++_T;
         ++count;
-        _encodeDelta(a, vertices);
+        _encodeDelta(a, vertices, dummy);
         _M[_V[a]] = 1;
         a = _O[N(a)];
     }
@@ -37,14 +39,15 @@ void Compressor::compress(
     ++count;
     clers.first = count;
 
-    _compress(_O[P(a)], vertices, clers, handles);
+    _compress(_O[P(a)], vertices, clers, handles, dummy);
 }
 
 void Compressor::_compress(
     int c,
     std::vector<Vertex>& vertices,
     std::pair<int, std::vector<CLERS>>& clers,
-    std::vector<Handle>& handles
+    std::vector<Handle>& handles,
+    std::vector<Dummy>& dummy
 ) {
     for(;;){
         _U[T(c)] = 1;
@@ -58,7 +61,7 @@ void Compressor::_compress(
         }
 
         if(_M[_V[c]] == 0) {
-            _encodeDelta(c, vertices);
+            _encodeDelta(c, vertices, dummy);
             _M[_V[c]] = 1;
 
             clers.second.push_back(CLERS::C);
@@ -84,7 +87,7 @@ void Compressor::_compress(
                     clers.second.push_back(CLERS::S);
                     _U[T(c)] = _T * 3 + 2;
                     
-                    _compress(R(_O, c), vertices, clers, handles);
+                    _compress(R(_O, c), vertices, clers, handles, dummy);
 
                     c = L(_O, c);
 
@@ -99,8 +102,15 @@ void Compressor::_compress(
 
 void Compressor::_encodeDelta(
     int c,
-    std::vector<Vertex>& vertices
+    std::vector<Vertex>& vertices,
+    std::vector<Dummy>& dummy
 ) {
+    for(auto& [i, v] : dummy){
+        if(v == _G[_V[c]]){
+            i = vertices.size();
+        }
+    }
+
     Vertex pred, delta;
     if (_M[_V[_O[c]]] > 0 && _M[_V[P(c)]] > 0) {
         // Case 1: a, b, d known (a + b - d)
@@ -108,11 +118,11 @@ void Compressor::_encodeDelta(
         delta = _G[_V[c]] - pred;
     } else if (_M[_V[_O[c]]] > 0) {
         // Case 2: a and d known (2a - d)
-        pred = 2 * _D[_V[N(c)]] - _D[_V[_O[c]]];
+        pred = 2.0f * _D[_V[N(c)]] - _D[_V[_O[c]]];
         delta = _G[_V[c]] - pred;
     } else if (_M[_V[N(c)]] > 0 && _M[_V[P(c)]] > 0) {
         // Case 3: a and b known ((a + b)/2)
-        pred = (_D[_V[N(c)]] + _D[_V[P(c)]]) / 2.0;
+        pred = (_D[_V[N(c)]] + _D[_V[P(c)]]) / 2.0f;
         delta = _G[_V[c]] - pred;
     } else if (_M[_V[N(c)]] > 0) {
         // Case 4: a known (a)

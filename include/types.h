@@ -39,3 +39,5 @@ inline Vertex operator*(float a, const Vertex& b){
 inline Vertex operator/(const Vertex& b, float a){
     return { a / b[0], a / b[1], a / b[2] };
 }
+
+using Dummy = std::pair<int, Vertex>;

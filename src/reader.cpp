@@ -65,14 +65,14 @@ std::pair<std::vector<Vertex>, std::vector<Indices>> Reader::read_OFF(
     return std::make_pair(vert, tri);
 }
 
-std::pair<std::vector<Vertex>, std::vector<std::tuple<std::vector<int>, std::vector<int>, std::vector<int>>>> Reader::read_OVX(
+std::pair<std::vector<Vertex>, std::vector<std::tuple<std::vector<int>, std::vector<int>, std::vector<Dummy>>>> Reader::read_OVX(
     const std::string& infile
 ) {
     std::ifstream in(infile);
     if(!in) throw ReaderException(std::format("Cannot open file {}!", infile));
 
     std::vector<Vertex> vert;
-    std::vector<std::tuple<std::vector<int>, std::vector<int>, std::vector<int>>> ovx;
+    std::vector<std::tuple<std::vector<int>, std::vector<int>, std::vector<Dummy>>> ovx;
 
     int comp_size;
     in >> comp_size;
@@ -83,14 +83,14 @@ std::pair<std::vector<Vertex>, std::vector<std::tuple<std::vector<int>, std::vec
         in >> vo_size;
         for(int j = 0; j < 3 * vo_size; ++j){
             in >> v >> o;
-            V.push_back(v);
+            V.push_back(v); //TODO remove
             O.push_back(o);
         }
         int dummy_size;
         in >> dummy_size;
         dummy.resize(dummy_size);
         for(auto& d : dummy){
-            in >> d;
+            in >> d.first;
         }
     }
     int vert_size;
@@ -103,12 +103,12 @@ std::pair<std::vector<Vertex>, std::vector<std::tuple<std::vector<int>, std::vec
     return std::make_pair(vert, ovx);
 }
 
-std::vector<std::tuple<std::queue<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<int>>> Reader::read_Compressed(const std::string &infile)
+std::vector<std::tuple<std::queue<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<Dummy>>> Reader::read_Compressed(const std::string &infile)
 {
     std::ifstream in(infile);
     if(!in) throw ReaderException(std::format("Cannot open file {}!", infile));
 
-    std::vector<std::tuple<std::queue<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<int>>> decompressed;
+    std::vector<std::tuple<std::queue<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<Dummy>>> decompressed;
 
     int comp_size;
     in >> comp_size;
@@ -145,17 +145,17 @@ std::vector<std::tuple<std::queue<Vertex>, std::pair<int, std::vector<CLERS>>, s
                 break;
             }
         }
-        int handles_size;
+        int handles_size, a, b;
         in >> handles_size;
         for(int j = 0; j < handles_size; ++j){
-            Handle h = handles.emplace_back();
+            Handle& h = handles.emplace_back();
             in >> h[0] >> h[1];
         }
         int dummy_size, d;
         in >> dummy_size;
         for(int j = 0; j < dummy_size; ++j){
             in >> d;
-            dummy.push_back(d);
+            dummy.push_back({d, {}});
         }
     }
 

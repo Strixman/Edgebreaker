@@ -30,10 +30,10 @@ public:
     static std::pair<std::vector<Vertex>, std::vector<Indices>> read_OFF(
         const std::string& infile
     );
-    static std::pair<std::vector<Vertex>, std::vector<std::tuple<std::vector<int>, std::vector<int>, std::vector<int>>>> read_OVX(
+    static std::pair<std::vector<Vertex>, std::vector<std::tuple<std::vector<int>, std::vector<int>, std::vector<Dummy>>>> read_OVX(
         const std::string& infile
     );
-    static std::vector<std::tuple<std::queue<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<int>>> read_Compressed(
+    static std::vector<std::tuple<std::queue<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<Dummy>>> read_Compressed(
         const std::string& infile
     );
 };

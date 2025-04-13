@@ -20,36 +20,49 @@ public:
         const std::vector<Handle>& handles
     ); 
 public:
-    std::tuple<std::vector<Vertex>, std::vector<int>, std::vector<int>> decompress();
+    void decompress(
+        std::vector<Vertex>& _G,
+        std::vector<int>& _V,
+        std::vector<int>& _O
+    );
 private:
     std::queue<Vertex>& _vertices; 
-    std::queue<CLERS> _clers;
+    std::vector<CLERS> _clers;
     const std::vector<Handle>& _H;
 
     int _T = 0;
     int _N = 2;
     int _A = 0;
 
-    std::vector<Vertex> _G;
-    std::vector<int> _V;
-    std::vector<int> _O;
     std::vector<int> _M;
     std::vector<int> _U;
 
 private:
     void _decompressConectivity(
-        int c
+        int c,
+        std::vector<int>& _V,
+        std::vector<int>& _O
     );
     void _decompressVertices(
-        int c
+        int c,
+        std::vector<Vertex>& _G,
+        std::vector<int>& _V,
+        std::vector<int>& _O
     );
     bool _checkHandle(
-        int c
+        int c,
+        std::vector<int>& _V,
+        std::vector<int>& _O
     );
     void _zip(
-        int c
+        int c,
+        std::vector<int>& _V,
+        std::vector<int>& _O
     );
     Vertex _decodeDelta(
-        int c
+        int c,
+        std::vector<Vertex>& _G,
+        std::vector<int>& _V,
+        std::vector<int>& _O
     );
 };

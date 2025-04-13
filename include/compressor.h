@@ -23,7 +23,8 @@ public:
         int c,
         std::vector<Vertex>& vertices,
         std::pair<int, std::vector<CLERS>>& clers,
-        std::vector<Handle>& handles
+        std::vector<Handle>& handles,
+        std::vector<Dummy>& dummy
     );
 private:
     int _T = 0;
@@ -39,11 +40,13 @@ private:
         int c,
         std::vector<Vertex>& vertices,
         std::pair<int, std::vector<CLERS>>& clers,
-        std::vector<Handle>& handles
+        std::vector<Handle>& handles,
+        std::vector<Dummy>& dummy
     );
     void _reset();
     void _encodeDelta(
         int c,
-        std::vector<Vertex>& vertices
+        std::vector<Vertex>& vertices,
+        std::vector<Dummy>& dummy
     );
 };
