@@ -2,14 +2,13 @@
 #include <array>
 
 struct File {
-    enum class EXT {
+    enum class Type {
         OBJ,
         OFF,
-        OVX
-    };
-    enum class Type {
-        BIN,
-        ASCII
+        OVX, // Opossite vertex extended
+        BCO, // Binary compressed
+        CO,  // Compressed
+        UNKNOWN
     };
 };
 

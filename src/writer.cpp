@@ -146,3 +146,27 @@ void Writer::write_OBJ(
         out << "f " << (t[0] + 1) << " " << (t[1] + 1) << " " << (t[2] + 1) << "\n";
     }
 }
+
+void Writer::write_OFF(
+    const std::string &outfile, 
+    const std::vector<Vertex> &vert, 
+    const std::vector<Indices> &tri
+) {
+    std::ofstream out(outfile);
+    if (!out) throw WriterException(std::format("Cannot write to file {}!", outfile));
+
+    // Write the header for OFF
+    out << "OFF" << "\n";
+    
+    out << vert.size() << " " << tri.size() << " 0" << "\n";
+    
+    // Write vertex coordinates
+    for (const auto& v : vert) {
+        out << v[0] << " " << v[1] << " " << v[2] << "\n";
+    }
+
+    // Write faces
+    for (const auto& t : tri) {
+        out << "3 " << t[0] << " " << t[1] << " " << t[2] << "\n";
+    }
+}

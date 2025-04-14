@@ -4,14 +4,51 @@
 #include "compressor.h"
 #include "decompressor.h"
 
+#include "types.h"
+#include "arg_parser.cpp"
+
 std::streamsize getFileSize(const std::string& filename) {
     std::ifstream file(filename, std::ios::binary | std::ios::ate);
     return file.tellg();
 }
 
-void compress(const std::string& infile, const std::string& outfile){
-    auto [vert, tri] = Reader::read_OBJ(infile);
-    auto ovx = Converter::toOVX(vert, tri);
+void ovx(const Args& args){
+    std::vector<Vertex> vert;
+    std::vector<std::tuple<std::vector<int>, std::vector<int>, std::vector<Dummy>>> _ovx;
+    if(args.infile_type == File::Type::OBJ){
+        auto [_vert, tri] = Reader::read_OBJ(args.infile);
+        vert = _vert;
+        _ovx = Converter::toOVX(vert, tri);
+    }
+    else if(args.infile_type == File::Type::OFF){
+        auto [_vert, tri] = Reader::read_OFF(args.infile);
+        vert = _vert;
+        _ovx = Converter::toOVX(vert, tri);
+    }
+
+    Writer::write_OVX(args.outfile, vert, _ovx);
+
+    std::cout << std::format("Converted file {} into {}\n", args.infile, args.outfile);
+}
+
+void compress(const Args& args){
+    std::vector<Vertex> vert;
+    std::vector<std::tuple<std::vector<int>, std::vector<int>, std::vector<Dummy>>> ovx;
+    if(args.infile_type == File::Type::OBJ){
+        auto [_vert, tri] = Reader::read_OBJ(args.infile);
+        vert = _vert;
+        ovx = Converter::toOVX(vert, tri);
+    }
+    else if(args.infile_type == File::Type::OFF){
+        auto [_vert, tri] = Reader::read_OFF(args.infile);
+        vert = _vert;
+        ovx = Converter::toOVX(vert, tri);
+    }
+    else if(args.infile_type == File::Type::OVX){
+        auto [_vert, _ovx] = Reader::read_OVX(args.infile);
+        vert = _vert;
+        ovx = _ovx;
+    }
 
     std::vector<std::tuple<std::vector<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<Dummy>>> compressed;
     int progress = 1;
@@ -27,25 +64,36 @@ void compress(const std::string& infile, const std::string& outfile){
         ++progress;
     }
 
-    Writer::write_Compressed_BIN(outfile, compressed);
+    if(args.outfile_type == File::Type::BCO){
+        Writer::write_Compressed_BIN(args.outfile, compressed);
+    }
+    else{
+        Writer::write_Compressed(args.outfile, compressed);
+    }
 
-    auto infile_size = getFileSize(infile);
-    auto outfile_size = getFileSize(outfile);
+    auto infile_size = getFileSize(args.infile);
+    auto outfile_size = getFileSize(args.outfile);
     std::cout << std::format("Compression ratio: {:.2f}\n", outfile_size / (float)infile_size);
     std::cout << std::format("Relative savings: {:.2f}%\n", ((infile_size - outfile_size) / (float)infile_size) * 100);
-    std::cout << std::format("Compressed file {} into {}\n", infile, outfile);
+    std::cout << std::format("Compressed file {} into {}\n", args.infile, args.outfile);
 }
 
-void decompress(const std::string& infile, const std::string& outfile){
-    auto uncompressed = Reader::read_Compressed_BIN(infile);
+void decompress(const Args& args){
+    std::vector<std::tuple<std::queue<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<Dummy>>> uncompressed;
+    if(args.infile_type == File::Type::BCO){
+        uncompressed = Reader::read_Compressed_BIN(args.infile);
+    }
+    else{
+        uncompressed = Reader::read_Compressed(args.infile);
+    }
 
-    std::vector<std::tuple<std::vector<Vertex>, std::vector<int>, std::vector<int>, std::vector<int>>> ovx;
+    std::vector<std::tuple<std::vector<Vertex>, std::vector<int>, std::vector<int>, std::vector<Dummy>>> ovx;
     int progress = 1;
     for(auto& [vertices, clers, handles, dummy] : uncompressed){
         std::cout << std::format("Decompressing progress: {:.2f}%\n", progress * 100 / (float)uncompressed.size());
         auto& [vert, V, O, _dummy] = ovx.emplace_back();
         for(auto d : dummy){
-            _dummy.push_back(d.first);
+            _dummy.push_back(d);
         }
 
         Decompressor d(vertices, clers, handles);
@@ -54,15 +102,26 @@ void decompress(const std::string& infile, const std::string& outfile){
     }
 
     auto [vert, tri] = Converter::fromOVX(ovx);
-    Writer::write_OBJ(outfile, vert, tri);
+    if(args.outfile_type == File::Type::OBJ){
+        Writer::write_OBJ(args.outfile, vert, tri);
+    }
+    else if(args.outfile_type == File::Type::OFF){
+        Writer::write_OFF(args.outfile, vert, tri);
+    }
 
-    std::cout << std::format("Decompressed file {} into {}\n", infile, outfile);
+    std::cout << std::format("Decompressed file {} into {}\n", args.infile, args.outfile);
 }
 
 int main(int argc, char* argv[]) {
-    compress(argv[1], "out.bin");
-
-    decompress("out.bin", "out.obj");
-
+    auto args = parseArgs(argc, argv);
+    if(args.mode == "compress"){
+        compress(args);
+    }
+    else if(args.mode == "decompress"){
+        decompress(args);
+    }
+    else{
+        ovx(args);
+    }
     return 0;
 }

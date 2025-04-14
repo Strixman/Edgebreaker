@@ -13,6 +13,6 @@ public:
         std::vector<Indices>& tri
     );
     static std::pair<std::vector<Vertex>, std::vector<Indices>> fromOVX(
-        const std::vector<std::tuple<std::vector<Vertex>, std::vector<int>, std::vector<int>, std::vector<int>>>& ovx
+        const std::vector<std::tuple<std::vector<Vertex>, std::vector<int>, std::vector<int>, std::vector<Dummy>>>& ovx
     );
 };

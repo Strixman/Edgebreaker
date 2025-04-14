@@ -189,14 +189,17 @@ std::vector<std::tuple<std::vector<int>, std::vector<int>, std::vector<Dummy>>> 
 }
 
 std::pair<std::vector<Vertex>, std::vector<Indices>> Converter::fromOVX(
-    const std::vector<std::tuple<std::vector<Vertex>, std::vector<int>, std::vector<int>, std::vector<int>>> &ovx
+    const std::vector<std::tuple<std::vector<Vertex>, std::vector<int>, std::vector<int>, std::vector<Dummy>>> &ovx
 ) {
     std::vector<Vertex> vert;
     std::vector<Indices> tri;
 
     int idx = 0;
     for (const auto& [_vert, V, _, dummy] : ovx) {
-        std::unordered_set<int> dummy_set(dummy.begin(), dummy.end());
+        std::unordered_set<int> dummy_set;
+        for(auto& d : dummy){
+            dummy_set.insert(d.first);
+        }
         std::vector<int> index_map(_vert.size(), -1);
         int current_batch_count = 0;
 

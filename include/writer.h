@@ -41,4 +41,9 @@ public:
         const std::vector<Vertex>& vert,
         const std::vector<Indices>& tri
     );
+    static void write_OFF(
+        const std::string& outfile,
+        const std::vector<Vertex>& vert,
+        const std::vector<Indices>& tri
+    );
 };
