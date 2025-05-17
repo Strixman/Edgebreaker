@@ -1,6 +1,6 @@
 **EdgeBreaker Compressor/Decompressor**
 
-This project provides a robust implementation of the **EdgeBreaker** compression algorithm for triangle meshes. With support for OBJ, OFF, and our intermediate OVX format, it enables high compression ratios and fast encoding/decoding workflows.
+This project provides a robust implementation of the **EdgeBreaker** compression algorithm for manifold and non-manifold triangle meshes. With support for OBJ, OFF, and our intermediate OVX format, it enables high compression ratios and fast encoding/decoding workflows.
 
 ---
 
