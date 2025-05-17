@@ -179,58 +179,96 @@ std::vector<std::tuple<std::queue<Vertex>, std::pair<int, std::vector<CLERS>>, s
     for (size_t i = 0; i < comp_size; ++i) {
         auto& [vertices, clers, handles, dummy] = decompressed.emplace_back();
 
-        // Read vertices count and each Vertex (assuming 3 numbers per vertex)
+        // Read vertices count and each Vertex
         size_t vertices_size;
         in.read(reinterpret_cast<char*>(&vertices_size), sizeof(vertices_size));
         for (size_t j = 0; j < vertices_size; ++j) {
-            Vertex& v = vertices.emplace();
+            Vertex v;
             in.read(reinterpret_cast<char*>(&v[0]), sizeof(v[0]));
             in.read(reinterpret_cast<char*>(&v[1]), sizeof(v[1]));
             in.read(reinterpret_cast<char*>(&v[2]), sizeof(v[2]));
+            vertices.push(v);
         }
 
         // Read CLERS count and the integer part (clers.first)
         size_t clers_enum_size;
         in.read(reinterpret_cast<char*>(&clers_enum_size), sizeof(clers_enum_size));
         in.read(reinterpret_cast<char*>(&clers.first), sizeof(clers.first));
-        for (size_t j = 0; j < clers_enum_size; ++j) {
-            char ch;
-            in.read(reinterpret_cast<char*>(&ch), sizeof(ch));
-            switch (ch) {
-                case 'C':
+        clers.second.clear();
+
+        if (clers_enum_size > 0) {
+            uint8_t current_byte = 0;
+            int current_bit_pos = -1; // Initialize to trigger read on first access
+
+            for (size_t j = 0; j < clers_enum_size; ++j) {
+                // Read first bit
+                if (current_bit_pos < 0) {
+                    in.read(reinterpret_cast<char*>(&current_byte), sizeof(current_byte));
+                    current_bit_pos = 7; // Start at the highest bit
+                }
+
+                int first_bit = (current_byte >> current_bit_pos) & 1;
+                current_bit_pos--;
+
+                if (first_bit == 0) {
                     clers.second.push_back(CLERS::C);
-                    break;
-                case 'L':
-                    clers.second.push_back(CLERS::L);
-                    break;
-                case 'E':
-                    clers.second.push_back(CLERS::E);
-                    break;
-                case 'R':
-                    clers.second.push_back(CLERS::R);
-                    break;
-                case 'S':
-                    clers.second.push_back(CLERS::S);
-                    break;
+                    continue;
+                }
+
+                // Read second bit
+                if (current_bit_pos < 0) {
+                    in.read(reinterpret_cast<char*>(&current_byte), sizeof(current_byte));
+                    current_bit_pos = 7;
+                }
+                int second_bit = (current_byte >> current_bit_pos) & 1;
+                current_bit_pos--;
+
+                // Read third bit
+                if (current_bit_pos < 0) {
+                    in.read(reinterpret_cast<char*>(&current_byte), sizeof(current_byte));
+                    current_bit_pos = 7;
+                }
+                int third_bit = (current_byte >> current_bit_pos) & 1;
+                current_bit_pos--;
+
+                uint8_t code = (first_bit << 2) | (second_bit << 1) | third_bit;
+
+                switch (code) {
+                    case 0b110:
+                        clers.second.push_back(CLERS::L);
+                        break;
+                    case 0b111:
+                        clers.second.push_back(CLERS::E);
+                        break;
+                    case 0b101:
+                        clers.second.push_back(CLERS::R);
+                        break;
+                    case 0b100:
+                        clers.second.push_back(CLERS::S);
+                        break;
+                    default:
+                        throw ReaderException("Invalid CLERS code");
+                }
             }
         }
 
-        // Read handles count and each handle (each assumed to have 2 elements)
+        // Read handles count and each handle
         size_t handles_size;
         in.read(reinterpret_cast<char*>(&handles_size), sizeof(handles_size));
         for (size_t j = 0; j < handles_size; ++j) {
-            Handle& h = handles.emplace_back();
+            Handle h;
             in.read(reinterpret_cast<char*>(&h[0]), sizeof(h[0]));
             in.read(reinterpret_cast<char*>(&h[1]), sizeof(h[1]));
+            handles.push_back(h);
         }
 
-        // Read dummy count and each dummy (only using dummy.first; the second element is kept empty)
+        // Read dummy count and each dummy
         size_t dummy_size;
         in.read(reinterpret_cast<char*>(&dummy_size), sizeof(dummy_size));
         for (size_t j = 0; j < dummy_size; ++j) {
             int d;
             in.read(reinterpret_cast<char*>(&d), sizeof(d));
-            dummy.push_back({d, {}}); // Adjust according to Dummy's structure.
+            dummy.push_back({d, {}}); // Adjust according to Dummy's structure
         }
     }
     return decompressed;
