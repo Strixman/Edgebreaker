@@ -5,7 +5,7 @@
 #include "decompressor.h"
 
 #include "types.h"
-#include "arg_parser.cpp"
+#include "arg_parser.h"
 
 std::streamsize getFileSize(const std::string& filename) {
     std::ifstream file(filename, std::ios::binary | std::ios::ate);

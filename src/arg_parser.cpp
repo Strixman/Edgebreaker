@@ -1,14 +1,5 @@
-#include <iostream>
-#include <string>
-#include <unordered_map>
+#include "arg_parser.h"
 
-struct Args {
-    std::string mode;
-    std::string infile;
-    std::string outfile;
-    File::Type infile_type;
-    File::Type outfile_type;
-};
 
 void printUsage(const std::string& programName) {
     std::cerr << "Usage: " << programName << " <compress|decompress|ovx> "
