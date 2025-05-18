@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include "converter.h"
 #include "reader.h"
 #include "writer.h"
@@ -32,6 +34,9 @@ void ovx(const Args& args){
 }
 
 void compress(const Args& args){
+    using Clock = std::chrono::high_resolution_clock;
+    auto t_start = Clock::now();
+
     std::vector<Vertex> vert;
     std::vector<std::tuple<std::vector<int>, std::vector<int>, std::vector<Dummy>>> ovx;
     if(args.infile_type == File::Type::OBJ){
@@ -76,9 +81,16 @@ void compress(const Args& args){
     std::cout << std::format("Compression ratio: {:.2f}\n", outfile_size / (float)infile_size);
     std::cout << std::format("Relative savings: {:.2f}%\n", ((infile_size - outfile_size) / (float)infile_size) * 100);
     std::cout << std::format("Compressed file {} into {}\n", args.infile, args.outfile);
+
+    auto t_end = Clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(t_end - t_start).count();
+    std::cout << std::format("Total compression time: {} ms\n", elapsed);
 }
 
 void decompress(const Args& args){
+    using Clock = std::chrono::high_resolution_clock;
+    auto t_start = Clock::now();
+
     std::vector<std::tuple<std::queue<Vertex>, std::pair<int, std::vector<CLERS>>, std::vector<Handle>, std::vector<Dummy>>> uncompressed;
     if(args.infile_type == File::Type::BCO){
         uncompressed = Reader::read_Compressed_BIN(args.infile);
@@ -110,6 +122,10 @@ void decompress(const Args& args){
     }
 
     std::cout << std::format("Decompressed file {} into {}\n", args.infile, args.outfile);
+
+    auto t_end = Clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(t_end - t_start).count();
+    std::cout << std::format("Total decompression time: {} ms\n", elapsed);
 }
 
 int main(int argc, char* argv[]) {
