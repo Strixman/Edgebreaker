@@ -35,12 +35,12 @@ void Writer::write_Compressed(
     out << compressed.size() << "\n";
     for(auto& [vertices, clers, handles, dummy] : compressed){
         out << vertices.size() << "\n";
-        for(auto& v : vertices){
-            out << v[0] << " " << v[1] << " " << v[2] << "\n";
+        for(const auto& v : vertices){
+            out << std::fixed << std::setprecision(6) << v[0] << " " << v[1] << " " << v[2] << "\n";
         }
         out << clers.second.size() << "\n";
         out << clers.first << "\n";
-        for(auto c : clers.second){
+        for(const auto c : clers.second){
             switch (c)
             {
             case CLERS::C:
@@ -62,23 +62,15 @@ void Writer::write_Compressed(
             out << "\n";
         }
         out << handles.size() << "\n";
-        for(auto& h : handles){
+        for(const auto& h : handles){
             out << h[0] << " " << h[1] << "\n";
         }
         out << dummy.size() << "\n";
-        for(auto d : dummy){
+        for(const auto& d : dummy){
             out << d.first << "\n";
         }
     }
 }
-
-#include <fstream>
-#include <vector>
-#include <tuple>
-#include <stdexcept>
-#include <format>
-
-// Assume necessary includes and definitions for Vertex, CLERS, Handle, Dummy, WriterException are present
 
 void Writer::write_Compressed_BIN(
     const std::string &outfile, 
